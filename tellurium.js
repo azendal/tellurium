@@ -1,7 +1,9 @@
 Class('Tellurium')({
-    run : function (code) {
-        var tellurium = new Tellurium();
-        tellurium.run(code);
+    suite : function (description) {
+        return function(code){
+            var tellurium = new Tellurium(description);
+            tellurium.run(code);
+        };
     },
     
     prototype : {
@@ -10,8 +12,10 @@ Class('Tellurium')({
         _specs          : [],
         _completedSpecs : [],
         parent          : null,
+        description     : '',
         
-        init : function(){
+        init : function(description){
+            this.description = description;
             this._beforeAllPool  = [];
             this._afterAllPool   = [];
             this._beforeEachPool = [];
