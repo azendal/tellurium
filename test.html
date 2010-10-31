@@ -1,23 +1,25 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-  "http://www.w3.org/TR/html4/loose.dtd">
+    "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<head>
-  <title>Tellurium Test Runner</title>
-  
+    <head>
+        <title>Tellurium Test Runner</title>
 
-  <!-- include source files here... -->
-  <script src="vendor/jquery.js" type="text/javascript" charset="utf-8"></script>
-  <script src="vendor/neon.js" type="text/javascript" charset="utf-8"></script>
-  <script src="vendor/custom_event.js" type="text/javascript" charset="utf-8"></script>
-  <script src="vendor/custom_event_support.js" type="text/javascript" charset="utf-8"></script>
-  <script src="vendor/node_support.js" type="text/javascript" charset="utf-8"></script>
-  
-  <!-- include tellurium -->
-  <script type="text/javascript" src="tellurium.js"></script>
 
-</head>
-<body>
-    <!-- include spec files here... -->
-    <script type="text/javascript" src="spec/basic.js"></script>
-</body>
+        <!-- include source files here... -->
+        <script src="vendor/jquery.js" type="text/javascript" charset="utf-8"></script>
+        <script src="vendor/neon.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- include tellurium -->
+        <script type="text/javascript" src="tellurium.js"></script>
+
+        <!-- include spec files here... -->
+        <script type="text/javascript" src="spec/basic.js"></script>
+
+    </head>
+    <body>
+        <!-- include spec files here... -->
+        <script type="text/javascript">
+            Tellurium.run();
+        </script>
+    </body>
 </html>
