@@ -213,18 +213,26 @@ Class(Tellurium, 'Specification')({
                 this.status = this.STATUS_SUCCESS;
             }
 
-            this.assertions.push(assertion);
-
             return this;
         },
         assertionFailed : function (assertion) {
             this.status = this.STATUS_FAIL;
-            this.assertions.push(assertion);
 
             return this;
         },
         assert          : function (actual) {
-            return new Tellurium.Assertion(actual, this);
+            var assertion = new Tellurium.Assertion(actual, this);
+            this.assertions.push(assertion);
+            return assertion;
+        },
+        spy             : function () {
+            return Tellurium.Spy;
+        },
+        stub            : function () {
+            return Tellurium.Stub;
+        },
+        mock            : function () {
+            return Tellurium.Mock;
         },
         completed       : function () {
             this.isCompleted = true;
@@ -242,7 +250,29 @@ Class(Tellurium, 'Mock')({
 });
 
 Class(Tellurium, 'Stub')({
-    
+    method : function (methodName) {
+        var factory;
+        
+        factory = function (stubFunction) {
+            factory.targetObject[methodName] = stubFunction;
+            return factory.targetObject;
+        };
+        
+        factory.methodName = methodName;
+        
+        factory.on = function (targetObject) {
+            factory.targetObject   = targetObject;
+            factory.originalMethod = targetObject[methodName]
+            return factory;
+        };
+        
+        return factory;
+    },
+    prototype : {
+        init : function () {
+            
+        }
+    }
 });
 
 Class(Tellurium, 'Spy')({
@@ -274,18 +304,23 @@ Class(Tellurium, 'Spy')({
 
 Class(Tellurium, 'Assertion')({
     prototype : {
+        STATUS_FAIL       : 'STATUS_FAIL',
+        STATUS_SUCCESS    : 'STATUS_SUCCESS',
         actual            : null,
         spec              : null,
+        status            : null,
         init              : function (actual, spec) {
             this.actual = actual;
             this.spec = spec;
         },
         notify            : function (assertResult, actual, assertName, expected) {
             if (assertResult === true) {
+                this.status = this.STATUS_SUCCESS;
                 this.spec.assertionPassed(this, actual, assertName, expected);
             }
             else {
-                this.spec.notifyFailure(this, actual, assertName, expected);
+                this.status = this.STATUS_FAILED;
+                this.spec.assertionFailed(this, actual, assertName, expected);
             }
         },
         addAssert         : function (name, assertFn) {

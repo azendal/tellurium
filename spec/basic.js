@@ -1,21 +1,55 @@
 Tellurium.suite('Tellurium')(function(){
     
-    this.describe('not taking any action')(function(){
+    this.describe('not taking any action')(function () {
         
     });
     
     this.describe('specs')(function(){
         this.specify('come up as pendant')();
 
-        this.specify('do nothing but not break')(function(){
+        this.specify('do nothing but not break')(function () {
             this.completed();
-        }); 
+        });
+        
+        this.specify('spy on an object syntax')(function () {
+            var object = {
+                spied : function(){
+                    return 'spied';
+                }
+            };
+            
+            var spy    = this.spy().on(object, 'spied');
+            var result = object.spied();
+            this.assert(spy).toBeCalled();
+            this.assert(result).toBe('spied');
+            this.completed();
+        });
+        
+        this.specify('spec assertions must be equal to assertion run')(function(){
+            this.assert(this.assertions.length).toBe(0);
+            this.assert(this.assertions.length).toBe(1);
+        });
+        
+        this.specify('stub a method on an object')(function(){
+            var object = {
+                stubed : function(){
+                    return 'original';
+                }
+            };
+            
+            this.stub().method('stubed').on(object)(function(){
+                return 'stubed'
+            });
+            
+            var result = object.stubed();
+            
+            this.assert(result).toBe('stubed');
+        });
     });
     
     this.describe('basic matchers')(function(){
         
         this.beforeEach(function(spec){
-            console.log('...')
             
             spec.registry.arr = [];
             spec.registry.obj = {};
@@ -162,7 +196,6 @@ Tellurium.suite('Tellurium')(function(){
                 this.assert(this.registry.arr).toEqual(this.registry.arr);
                 this.completed();
             });
-            
             
             this.specify('an object must be equal to the same object')(function(){
                 this.assert(this.registry.obj).toEqual(this.registry.obj);
