@@ -42,6 +42,7 @@ Module(Tellurium, 'Context')({
         code              : null,
         parent            : null,
         children          : null,
+        stubs             : null,
         completedChildren : null,
         beforeEachPool    : null,
         afterEachPool     : null,
@@ -50,6 +51,7 @@ Module(Tellurium, 'Context')({
             this.description       = description;
             this.code              = code;
             this.children          = [];
+            this.stubs             = [];
             this.completedChildren = [];
             this.beforeEachPool    = [];
             this.afterEachPool     = [];
@@ -229,10 +231,12 @@ Class(Tellurium, 'Specification')({
             return Tellurium.Spy;
         },
         stub            : function () {
-            return Tellurium.Stub;
+            var stub = new Tellurium.Stub;
+            this.stubs.push(stub);
+            return stub;
         },
         mock            : function () {
-            return Tellurium.Mock;
+            return {};
         },
         completed       : function () {
             this.isCompleted = true;
@@ -243,34 +247,39 @@ Class(Tellurium, 'Specification')({
     }
 });
 
-Class(Tellurium, 'Mock')({
-    create : function(obj){
-        return obj;
-    }
-});
-
 Class(Tellurium, 'Stub')({
-    method : function (methodName) {
-        var factory;
-        
-        factory = function (stubFunction) {
-            factory.targetObject[methodName] = stubFunction;
-            return factory.targetObject;
-        };
-        
-        factory.methodName = methodName;
-        
-        factory.on = function (targetObject) {
-            factory.targetObject   = targetObject;
-            factory.originalMethod = targetObject[methodName]
-            return factory;
-        };
-        
-        return factory;
-    },
     prototype : {
-        init : function () {
+        targetObject   : null,
+        methodName     : null,
+        newMethod      : null,
+        originalMethod : null,
+        init           : function (config) {
+            config = config || {};
             
+            this.targetObject   = config.targetObject;
+            this.methodName     = config.methodName;
+            this.newMethod      = config.newMethod;
+        },
+        applyStub      : function () {
+            this.originalMethod = targetObject[methodName];
+            this.targetObject[this.methodName] = this.newMethod;
+            return this;
+        },
+        removeStub     : function () {
+            this.targetObject[this.methodName] = this.originalMethod;
+            return this;
+        },
+        on             : function (targetObject) {
+            this.targetObject = targetObject;
+            return this;
+        },
+        method         : function (methodName) {
+            this.methodName = methodname;
+            return this;
+        },
+        using          : function (newMethod) {
+            this.newMethod = newMethod;
+            return this;
         }
     }
 });
