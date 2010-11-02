@@ -36,8 +36,212 @@ Module('Tellurium')({
     }
 });
 
+Class(Tellurium, 'Stub')({
+    prototype : {
+        targetObject   : null,
+        methodName     : null,
+        newMethod      : null,
+        originalMethod : null,
+        init           : function (config) {
+            config = config || {};
+            
+            this.targetObject   = config.targetObject;
+            this.methodName     = config.methodName;
+            this.newMethod      = config.newMethod;
+        },
+        applyStub      : function () {
+            this.originalMethod = this.targetObject[this.methodName];
+            this.targetObject[this.methodName] = this.newMethod;
+            return this;
+        },
+        removeStub     : function () {
+            this.targetObject[this.methodName] = this.originalMethod;
+            return this;
+        },
+        on             : function (targetObject) {
+            this.targetObject = targetObject;
+            return this;
+        },
+        method         : function (methodName) {
+            this.methodName = methodName;
+            return this;
+        },
+        using          : function (newMethod) {
+            this.newMethod = newMethod;
+            this.applyStub();
+            return this;
+        }
+    }
+});
+
+Module(Tellurium.Stub, 'Factory')({
+    prototype : {
+        stubs : null,
+        stub  : function () {
+            var stub = new Tellurium.Stub;
+            this.stubs = this.stubs || [];
+            this.stubs.push(stub);
+            return stub;
+        },
+    }
+});
+
+Class(Tellurium, 'Spy')({
+    prototype : {
+        targetObject   : null,
+        methodName     : null,
+        spyMethod      : null,
+        originalMethod : null,
+        called         : null,
+        init           : function (config) {
+            config = config || {};
+            
+            this.called         = [];
+            this.targetObject   = config.targetObject;
+            this.methodName     = config.methodName;
+        },
+        applySpy       : function () {
+            var spy;
+            
+            spy = this;
+            this.originalMethod = this.targetObject[this.methodName];
+            this.targetObject[this.methodName] = function(){
+                var args;
+                args = Array.prototype.slice.call(arguments || [], 0, arguments.length - 1);
+                spy.called.push(args);
+                return spy.originalMethod.apply(spy.targetObject, args);
+            }
+            return this;
+        },
+        removeSpy      : function () {
+            this.targetObject[this.methodName] = this.originalMethod;
+            return this;
+        },
+        on             : function (targetObject) {
+            this.targetObject = targetObject;
+            return this;
+        },
+        method         : function (methodName) {
+            this.methodName = methodName;
+            this.applySpy();
+            return this;
+        }
+    }
+});
+
+Module(Tellurium.Spy, 'Factory')({
+    prototype : {
+        spies : null,
+        spy   : function () {
+            var spy = new Tellurium.Spy;
+            this.spies = this.spies || [];
+            this.spies.push(spy);
+            return spy;
+        },
+    }
+});
+
+Class(Tellurium, 'Assertion')({
+    includeAssertions : function (assertions) {
+        var assertion;
+        for (assertion in assertions) {
+            if (assertions.hasOwnProperty(assertion)) {
+                this.prototype.addAssert(assertion, assertions[assertion]);
+            }
+        }
+        
+        return this;
+    },
+    prototype : {
+        TYPE_TRUE         : 'TYPE_TRUE',
+        TYPE_FALSE        : 'TYPE_FALSE',
+        STATUS_FAIL       : 'STATUS_FAIL',
+        STATUS_SUCCESS    : 'STATUS_SUCCESS',
+        actual            : null,
+        expected          : null,
+        spec              : null,
+        status            : null,
+        type              : null,
+        init              : function (actual, spec) {
+            this.type   = this.TYPE_TRUE;
+            this.actual = actual;
+            this.spec   = spec;
+        },
+        not               : function(){
+            this.type = this.TYPE_FALSE;
+        },
+        notify            : function (assertResult, expected) {
+            if(assertResult === true){
+                if(this.type == this.TYPE_FALSE){
+                    this.spec.assertionFailed(this);
+                }
+                else {
+                    this.spec.assertionPassed(this);
+                }
+            } else {
+                if(this.type == this.TYPE_FALSE){
+                    this.spec.assertionPassed(this);
+                }
+                else {
+                    this.spec.assertionFailed(this);
+                }
+            }
+            
+            return this;
+        },
+        addAssert         : function (name, assertFn) {
+            this[name] = function () {
+                args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
+                this.invoqued = name;
+                this.expected = args
+                this.notify(assertFn.apply(this, args));
+                return null;
+            };
+            
+            return this;
+        }
+    }
+});
+
+Tellurium.Assertion.includeAssertions({
+    toBe            : function(expected){
+        return (this.actual === expected);
+    },
+    toEqual         : function(expected){
+        return (this.actual == expected);
+    },
+    toMatch         : function(expected){
+        return (expected.test(this.actual) === true);
+    },
+    toBeDefined     : function(){
+        return (typeof this.actual !== 'undefined');
+    },
+    toBeNull        : function(){
+        return (this.actual === null);
+    },
+    toBeTruthy      : function(){
+        return ((this.actual) ? true : false);
+    },
+    toBeCalled      : function(){
+        return (this.actual.called.length > 0);
+    },
+    toBeCalledWith  : function(){
+        return (this.actual.called[0] === expected);
+    },
+    toBeGreaterThan : function(expected){
+        return (this.actual > expected);
+    },
+    toBeLessThan    : function(expected){
+        return (this.actual < expected);
+    },
+    toBeInstanceOf  : function(){
+        return (this.actual.constructor === expected);
+    }
+});
+
 Module(Tellurium, 'Context')({
     prototype : {
+        registry          : null,
         description       : null,
         code              : null,
         parent            : null,
@@ -47,6 +251,7 @@ Module(Tellurium, 'Context')({
         afterEachPool     : null,
         isCompleted       : null,
         init              : function (description, code) {
+            this.registry          = [];
             this.description       = description;
             this.code              = code;
             this.children          = [];
@@ -157,7 +362,7 @@ Module(Tellurium, 'Context')({
 
             return this;
         },
-        completed         : function () {
+        completed         : function () { 
             this.isCompleted = true;
 
             if (this.parent) {
@@ -169,11 +374,11 @@ Module(Tellurium, 'Context')({
     }
 });
 
-Class(Tellurium, 'Suite').includes(Tellurium.Context)({});
+Class(Tellurium, 'Suite').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({});
 
-Class(Tellurium, 'Description').includes(Tellurium.Context)({});
+Class(Tellurium, 'Description').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({});
 
-Class(Tellurium, 'Specification')({
+Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy.Factory)({
     prototype : {
         STATUS_PENDANT  : 'STATUS_PENDANT',
         STATUS_FAIL     : 'STATUS_FAIL',
@@ -181,7 +386,6 @@ Class(Tellurium, 'Specification')({
         description     : null,
         code            : null,
         parent          : null,
-        stubs           : null,
         assertions      : null,
         registry        : null,
         status          : null,
@@ -190,7 +394,6 @@ Class(Tellurium, 'Specification')({
             this.description = description;
             this.code        = code;
             this.registry    = {};
-            this.stubs       = [];
             this.assertions  = [];
             this.isCompleted = false;
         },
@@ -227,14 +430,6 @@ Class(Tellurium, 'Specification')({
             this.assertions.push(assertion);
             return assertion;
         },
-        spy             : function () {
-            return Tellurium.Spy;
-        },
-        stub            : function () {
-            var stub = new Tellurium.Stub;
-            this.stubs.push(stub);
-            return stub;
-        },
         mock            : function () {
             return {};
         },
@@ -243,171 +438,6 @@ Class(Tellurium, 'Specification')({
             this.parent.childCompleted(this);
 
             return this;
-        }
-    }
-});
-
-Class(Tellurium, 'Stub')({
-    prototype : {
-        targetObject   : null,
-        methodName     : null,
-        newMethod      : null,
-        originalMethod : null,
-        init           : function (config) {
-            config = config || {};
-            
-            this.targetObject   = config.targetObject;
-            this.methodName     = config.methodName;
-            this.newMethod      = config.newMethod;
-        },
-        applyStub      : function () {
-            this.originalMethod = targetObject[methodName];
-            this.targetObject[this.methodName] = this.newMethod;
-            return this;
-        },
-        removeStub     : function () {
-            this.targetObject[this.methodName] = this.originalMethod;
-            return this;
-        },
-        on             : function (targetObject) {
-            this.targetObject = targetObject;
-            return this;
-        },
-        method         : function (methodName) {
-            this.methodName = methodname;
-            return this;
-        },
-        using          : function (newMethod) {
-            this.newMethod = newMethod;
-            return this;
-        }
-    }
-});
-
-Class(Tellurium, 'Spy')({
-    on        : function (targetObject, spyedFunction) {
-        return (new Tellurium.Spy(targetObject, spyedFunction));
-    },
-    prototype : {
-        called            : [],
-        targetObject      : null,
-        spyedFunctionName : null,
-        spyedFunction     : null,
-        init              : function (targetObject, spyedFunction) {
-            this.targetObject      = targetObject;
-            this.spyedFunctionName = spyedFunction;
-            this.spyedFunction     = targetObject[spyedFunction];
-
-            var spy = this;
-
-            this.targetObject[this.spyedFunctionName] = function () {
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
-                spy.called.push({
-                    args : args
-                });
-                return spy.spyedFunction.apply(spy.targetObject, args);
-            };
-        }
-    }
-});
-
-Class(Tellurium, 'Assertion')({
-    prototype : {
-        STATUS_FAIL       : 'STATUS_FAIL',
-        STATUS_SUCCESS    : 'STATUS_SUCCESS',
-        actual            : null,
-        spec              : null,
-        status            : null,
-        init              : function (actual, spec) {
-            this.actual = actual;
-            this.spec = spec;
-        },
-        notify            : function (assertResult, actual, assertName, expected) {
-            if (assertResult === true) {
-                this.status = this.STATUS_SUCCESS;
-                this.spec.assertionPassed(this, actual, assertName, expected);
-            }
-            else {
-                this.status = this.STATUS_FAILED;
-                this.spec.assertionFailed(this, actual, assertName, expected);
-            }
-        },
-        addAssert         : function (name, assertFn) {
-            this[name] = function () {
-                this.notify(assertFn.apply(this, arguments));  
-            };
-        },
-        toBe              : function (expected) {
-            var result = (this.actual === expected);
-            this.notify(result, this.actual, 'toBe', expected);
-        },                                      
-        toNotBe           : function (expected) {
-            var result = (this.actual !== expected);
-            this.notify(result, this.actual, 'toNotBe', expected);
-        },                                      
-        toEqual           : function (expected) {
-            var result = (this.actual == expected);
-            this.notify(result, this.actual, 'toEqual', expected);
-        },                                      
-        toNotEqual        : function (expected) {
-            var result = (this.actual != expected);
-            this.notify(result, this.actual, 'toNotEqual', expected);
-        },                                      
-        toMatch           : function (expected) {
-            var result = (expected.test(this.actual) === true);
-            this.notify(result, this.actual, 'toMatch', expected);
-        },                                      
-        toNotMatch        : function (expected) {
-            var result = (expected.test(this.actual) === false);
-            this.notify(result, this.actual, 'toNotMatch', expected);
-        },
-        toBeDefined       : function () {
-            var result = (typeof this.actual !== 'undefined'); 
-            this.notify(result, this.actual, 'toBeDefined');
-        },                              
-        toBeUndefined     : function () {
-            var result = (typeof this.actual === 'undefined');
-            this.notify(result, this.actual, 'toBeUndefined');
-        },                              
-        toBeNull          : function () {
-            var result = (this.actual === null);
-            this.notify(result, this.actual, 'toBeNull');
-        },                              
-        toBeTruthy        : function () {
-            var result = ((this.actual) ? true : false);
-            this.notify(result, this.actual, 'toBeTruthy');
-        },                              
-        toBeFalsy         : function () {
-            var result = ((this.actual) ? false : true);
-            this.notify(result, this.actual, 'toBeFalsy');
-        },                              
-        toBeCalled        : function () {
-            var result = (this.actual.called.length > 0);
-            this.notify(result, this.actual.spyedFunctionName, 'toBeCalled');
-        },                              
-        toNotBeCalled     : function () {
-            var result = (this.actual.called.length === 0);
-            this.notify(result, this.actual.name, 'toNotBeCalled');
-        },
-        toBeCalledWith    : function (expected) {
-            var result = (this.actual.called[0] === expected);
-            this.notify(result, this.actual.name, 'toBeCalledWith', expected);
-        },                                      
-        toNotBeCalledWith : function (expected) {
-            var result = (this.actual.called[0] !== expected);
-            this.notify(result, this.actual.name, 'toNotBeCalledWith', expected);
-        },                                     
-        toBeLessThan      : function (expected) {
-            var result = (this.actual < expected);
-            this.notify(result, this.actual, 'toBeLessThan', expected);
-        },                                      
-        toBeGreaterThan   : function (expected) {
-            var result = (this.actual > expected);
-            this.notify(result, this.actual, 'toBeGreaterThan', expected);
-        },                                      
-        toBeInstanceOf    : function (expected) {
-            var result = (this.actual.constructor === expected);
-            this.notify(result, this.actual, 'toBeInstanceOf', expected);
         }
     }
 });
