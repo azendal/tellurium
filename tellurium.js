@@ -42,7 +42,6 @@ Module(Tellurium, 'Context')({
         code              : null,
         parent            : null,
         children          : null,
-        stubs             : null,
         completedChildren : null,
         beforeEachPool    : null,
         afterEachPool     : null,
@@ -51,7 +50,6 @@ Module(Tellurium, 'Context')({
             this.description       = description;
             this.code              = code;
             this.children          = [];
-            this.stubs             = [];
             this.completedChildren = [];
             this.beforeEachPool    = [];
             this.afterEachPool     = [];
@@ -183,6 +181,7 @@ Class(Tellurium, 'Specification')({
         description     : null,
         code            : null,
         parent          : null,
+        stubs           : null,
         assertions      : null,
         registry        : null,
         status          : null,
@@ -191,6 +190,7 @@ Class(Tellurium, 'Specification')({
             this.description = description;
             this.code        = code;
             this.registry    = {};
+            this.stubs       = [];
             this.assertions  = [];
             this.isCompleted = false;
         },
