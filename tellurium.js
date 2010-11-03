@@ -2,6 +2,7 @@ Module('Tellurium')({
     children          : [],
     completedChildren : [],
     isCompleted       : false,
+    reporter          : null,
     suite             : function (description) {
         var factory = function (code) {
             var suite = new Tellurium.Suite(description, code);
@@ -13,8 +14,13 @@ Module('Tellurium')({
         return factory;
     },
     run               : function () {
-        console.time('run')
         var i;
+        
+        if(this.reporter === null){
+            this.reporter = new Tellurium.Reporter.Firebug();
+        }
+        
+        console.time('run');
 
         for (i = 0; i < this.children.length; i++) {
             this.children[i].run();
@@ -34,8 +40,7 @@ Module('Tellurium')({
     completed         : function () {
         this.isCompleted = true;
         console.timeEnd('run');
-        var reporter = new Tellurium.ConsoleReporter();
-        reporter.tellurium();
+        this.reporter.run();
         return this;
     }
 });
@@ -482,6 +487,10 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
                 this.cleanStubs();
             }
             
+            if(this.status === null){
+                this.status = this.STATUS_SUCCESS;
+            }
+            
             this.parent.childCompleted(this);
 
             return this;
@@ -489,7 +498,9 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
     }
 });
 
-Class(Tellurium, 'ConsoleReporter')({
+Tellurium.Reporter = {};
+
+Class(Tellurium.Reporter, 'Firebug')({
     prototype : {
         init          : function(){
             this.totalSpecs   = 0;
@@ -497,7 +508,7 @@ Class(Tellurium, 'ConsoleReporter')({
             this.passedSpecs  = 0;
             this.pendantSpecs = 0;
         },
-        tellurium     : function(){
+        run           : function(){
             console.log('Tellurium Test Results');
             for (var i=0; i < Tellurium.children.length; i++) {
                 this.suite(Tellurium.children[i]);
