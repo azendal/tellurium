@@ -196,16 +196,20 @@ Class(Tellurium, 'Assertion')({
         notify            : function (assertResult) {
             if(assertResult === true){
                 if(this.type == this.TYPE_FALSE){
+                    this.status = this.STATUS_FAIL;
                     this.spec.assertionFailed(this);
                 }
                 else {
+                    this.status = this.STATUS_SUCCESS;
                     this.spec.assertionPassed(this);
                 }
             } else {
                 if(this.type == this.TYPE_FALSE){
+                    this.status = this.STATUS_SUCCESS;
                     this.spec.assertionPassed(this);
                 }
                 else {
+                    this.status = this.STATUS_FAIL;
                     this.spec.assertionFailed(this);
                 }
             }
@@ -546,9 +550,22 @@ Class(Tellurium, 'ConsoleReporter')({
                 this.pendantSpecs = this.pendantSpecs + 1;
                 console.warn(specification.description, '');
             }
+            
+            console.groupCollapsed('assertions');
+            for (var i=0; i < specification.assertions.length; i++) {
+                this.assertion(specification.assertions[i]);
+            };
+            console.groupEnd('assertions');
+            
         },
         assertion     : function(assertion){
-            
+
+            if(assertion.status == assertion.STATUS_SUCCESS){
+                console.info(assertion.expected, ' ', assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
+            }
+            else if(assertion.status == assertion.STATUS_FAIL){
+                console.info(assertion.expected, ' ', assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
+            }
         }
     }
 });
