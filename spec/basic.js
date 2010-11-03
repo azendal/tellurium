@@ -5,7 +5,7 @@ Tellurium.suite('Tellurium')(function(){
     });
     
     this.describe('specs')(function(){
-        this.specify('come up as pendant')();
+        this.specify('come up as pending')();
         
         this.specify('a failing test')(function(){
             this.assert(1).toBe(2);
@@ -26,6 +26,11 @@ Tellurium.suite('Tellurium')(function(){
                 spec.assert(1).toBe(1);
                 spec.completed();
             }, 1000);
+        });
+        
+        this.specify('usage of not')(function(){
+            this.assert(1).not().toBe(2);
+            this.completed();
         });
         
         this.specify('spy on an object syntax')(function () {

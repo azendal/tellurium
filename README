@@ -1,0 +1,5 @@
+Tellurium is a JavaScript Testing Framework using testing patterns like Mock, Stub, and Spy.
+this framework tries to go as close as possible with EcmaScript behaviour. so if you used anothers language
+testing frameworks you may find that some of your tools are not here but trust me its better this way.
+
+you still can extend the framework so easy, it was written in a couple of days, actually testing it with itself was the hardest part, so you should be able to extend it easily.

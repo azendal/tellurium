@@ -191,6 +191,7 @@ Class(Tellurium, 'Assertion')({
         },
         not               : function () {
             this.type = this.TYPE_FALSE;
+            return this;
         },
         notify            : function (assertResult) {
             if(assertResult === true){
@@ -412,7 +413,7 @@ Class(Tellurium, 'Description').includes(Tellurium.Context, Tellurium.Stub.Facto
 
 Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy.Factory)({
     prototype : {
-        STATUS_PENDANT  : 'STATUS_PENDANT',
+        STATUS_PENDING  : 'STATUS_PENDING',
         STATUS_FAIL     : 'STATUS_FAIL',
         STATUS_SUCCESS  : 'STATUS_SUCCESS',
         description     : null,
@@ -442,7 +443,7 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
             }
         },
         pendant         : function () {
-            this.status = this.STATUS_PENDANT;
+            this.status = this.STATUS_PENDING;
             this.completed();  
         },
         assertionPassed : function (assertion) {
@@ -466,6 +467,7 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
             return {};
         },
         completed       : function () {
+            
             this.isCompleted = true;
             
             if (this.spies) {
@@ -485,7 +487,7 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
 
 Class(Tellurium, 'ConsoleReporter')({
     prototype : {
-        init : function(){
+        init          : function(){
             this.totalSpecs   = 0;
             this.failedSpecs  = 0;
             this.passedSpecs  = 0;
@@ -499,7 +501,7 @@ Class(Tellurium, 'ConsoleReporter')({
             console.info('Total: ', this.totalSpecs);
             console.info('Passed: ', this.passedSpecs);
             console.error('Failed: ', this.failedSpecs);
-            console.warn('Pendant: ', this.pendantSpecs);
+            console.warn('Pending: ', this.pendantSpecs);
             console.log('End')
         },
         suite         : function(suite){
@@ -534,15 +536,15 @@ Class(Tellurium, 'ConsoleReporter')({
             this.totalSpecs = this.totalSpecs + 1;
             if(specification.status == specification.STATUS_FAIL) {
                 this.failedSpecs = this.failedSpecs + 1;
-                console.error(specification.description, specification.status);
+                console.error(specification.description, '');
             }
             else if( specification.status == specification.STATUS_SUCCESS ){
                 this.passedSpecs = this.passedSpecs + 1;
-                console.info(specification.description, specification.status);
+                console.info(specification.description, '');
             }
-            else if( specification.status == specification.STATUS_PENDANT ){
+            else if( specification.status == specification.STATUS_PENDING ){
                 this.pendantSpecs = this.pendantSpecs + 1;
-                console.warn(specification.description, specification.status);
+                console.warn(specification.description, '');
             }
         },
         assertion     : function(assertion){
