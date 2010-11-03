@@ -13,6 +13,7 @@ Module('Tellurium')({
         return factory;
     },
     run               : function () {
+        console.time('run')
         var i;
 
         for (i = 0; i < this.children.length; i++) {
@@ -32,6 +33,7 @@ Module('Tellurium')({
     },
     completed         : function () {
         this.isCompleted = true;
+        console.timeEnd('run');
         var reporter = new Tellurium.ConsoleReporter();
         reporter.tellurium();
         return this;
@@ -483,11 +485,21 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
 
 Class(Tellurium, 'ConsoleReporter')({
     prototype : {
+        init : function(){
+            this.totalSpecs   = 0;
+            this.failedSpecs  = 0;
+            this.passedSpecs  = 0;
+            this.pendantSpecs = 0;
+        },
         tellurium     : function(){
             console.log('Tellurium Test Results');
             for (var i=0; i < Tellurium.children.length; i++) {
                 this.suite(Tellurium.children[i]);
             };
+            console.info('Total: ', this.totalSpecs);
+            console.info('Passed: ', this.passedSpecs);
+            console.error('Failed: ', this.failedSpecs);
+            console.warn('Pendant: ', this.pendantSpecs);
             console.log('End')
         },
         suite         : function(suite){
@@ -519,13 +531,17 @@ Class(Tellurium, 'ConsoleReporter')({
             console.groupEnd(description.description);
         },
         specification : function(specification){
+            this.totalSpecs = this.totalSpecs + 1;
             if(specification.status == specification.STATUS_FAIL) {
+                this.failedSpecs = this.failedSpecs + 1;
                 console.error(specification.description, specification.status);
             }
             else if( specification.status == specification.STATUS_SUCCESS ){
+                this.passedSpecs = this.passedSpecs + 1;
                 console.info(specification.description, specification.status);
             }
             else if( specification.status == specification.STATUS_PENDANT ){
+                this.pendantSpecs = this.pendantSpecs + 1;
                 console.warn(specification.description, specification.status);
             }
         },
