@@ -32,6 +32,8 @@ Module('Tellurium')({
     },
     completed         : function () {
         this.isCompleted = true;
+        var reporter = new Tellurium.ConsoleReporter();
+        reporter.tellurium();
         return this;
     }
 });
@@ -76,13 +78,22 @@ Class(Tellurium, 'Stub')({
 
 Module(Tellurium.Stub, 'Factory')({
     prototype : {
-        stubs : null,
-        stub  : function () {
+        stubs      : null,
+        stub       : function () {
             var stub = new Tellurium.Stub;
             this.stubs = this.stubs || [];
             this.stubs.push(stub);
             return stub;
         },
+        cleanStubs : function () {
+            var i;
+            
+            for (i = 0; i < this.stubs.length; i++) {
+                this.stubs[i].removeStub();
+            }
+            
+            return this;
+        }
     }
 });
 
@@ -107,7 +118,7 @@ Class(Tellurium, 'Spy')({
             this.originalMethod = this.targetObject[this.methodName];
             this.targetObject[this.methodName] = function(){
                 var args;
-                args = Array.prototype.slice.call(arguments || [], 0, arguments.length - 1);
+                args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 spy.called.push(args);
                 return spy.originalMethod.apply(spy.targetObject, args);
             }
@@ -131,13 +142,22 @@ Class(Tellurium, 'Spy')({
 
 Module(Tellurium.Spy, 'Factory')({
     prototype : {
-        spies : null,
-        spy   : function () {
+        spies      : null,
+        spy        : function () {
             var spy = new Tellurium.Spy;
             this.spies = this.spies || [];
             this.spies.push(spy);
             return spy;
         },
+        cleanSpies : function () {
+            var i;
+            
+            for (i = 0; i < this.spies.length; i++) {
+                this.spies[i].removeSpy();
+            }
+            
+            return this;
+        }
     }
 });
 
@@ -167,10 +187,10 @@ Class(Tellurium, 'Assertion')({
             this.actual = actual;
             this.spec   = spec;
         },
-        not               : function(){
+        not               : function () {
             this.type = this.TYPE_FALSE;
         },
-        notify            : function (assertResult, expected) {
+        notify            : function (assertResult) {
             if(assertResult === true){
                 if(this.type == this.TYPE_FALSE){
                     this.spec.assertionFailed(this);
@@ -191,9 +211,9 @@ Class(Tellurium, 'Assertion')({
         },
         addAssert         : function (name, assertFn) {
             this[name] = function () {
-                args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
+                args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 this.invoqued = name;
-                this.expected = args
+                this.expected = args;
                 this.notify(assertFn.apply(this, args));
                 return null;
             };
@@ -204,37 +224,37 @@ Class(Tellurium, 'Assertion')({
 });
 
 Tellurium.Assertion.includeAssertions({
-    toBe            : function(expected){
+    toBe            : function (expected) {
         return (this.actual === expected);
     },
-    toEqual         : function(expected){
+    toEqual         : function (expected) {
         return (this.actual == expected);
     },
-    toMatch         : function(expected){
+    toMatch         : function (expected) {
         return (expected.test(this.actual) === true);
     },
-    toBeDefined     : function(){
+    toBeDefined     : function () {
         return (typeof this.actual !== 'undefined');
     },
-    toBeNull        : function(){
+    toBeNull        : function () {
         return (this.actual === null);
     },
-    toBeTruthy      : function(){
+    toBeTruthy      : function () {
         return ((this.actual) ? true : false);
     },
-    toBeCalled      : function(){
+    toBeCalled      : function () {
         return (this.actual.called.length > 0);
     },
-    toBeCalledWith  : function(){
+    toBeCalledWith  : function () {
         return (this.actual.called[0] === expected);
     },
-    toBeGreaterThan : function(expected){
+    toBeGreaterThan : function (expected) {
         return (this.actual > expected);
     },
-    toBeLessThan    : function(expected){
+    toBeLessThan    : function (expected) {
         return (this.actual < expected);
     },
-    toBeInstanceOf  : function(){
+    toBeInstanceOf  : function () {
         return (this.actual.constructor === expected);
     }
 });
@@ -279,8 +299,8 @@ Module(Tellurium, 'Context')({
             var current = this;
 
             return function (code) {
-                var description = new Tellurium.Description(description, code);
-                current.appendChild(description);
+                var describe = new Tellurium.Description(description, code);
+                current.appendChild(describe);
             };
         },
         specify           : function (description) {
@@ -291,6 +311,8 @@ Module(Tellurium, 'Context')({
                 current.appendChild(specification);
             };
         },
+        setup             : function (code) { console.log('setup not implemented') },
+        teardown          : function (code) { console.log('teardown not implemented') },
         beforeEach        : function (code) {
             this.beforeEachPool.push(code);
 
@@ -309,7 +331,7 @@ Module(Tellurium, 'Context')({
             if (this.children.length === 0) {
                 this.completed();
             }
-
+            
             for (i = 0; i < this.children.length; i++) {
                 if (this.children[i] instanceof Tellurium.Specification) {
                     this.runBeforeEach(this.children[i]);
@@ -362,9 +384,17 @@ Module(Tellurium, 'Context')({
 
             return this;
         },
-        completed         : function () { 
+        completed         : function () {
             this.isCompleted = true;
-
+            
+            if (this.spies) {
+                this.cleanSpies();
+            }
+            
+            if (this.stubs) {
+                this.cleanStubs();
+            }
+            
             if (this.parent) {
                 this.parent.childCompleted(this);
             }
@@ -435,9 +465,72 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
         },
         completed       : function () {
             this.isCompleted = true;
+            
+            if (this.spies) {
+                this.cleanSpies();
+            }
+            
+            if (this.stubs) {
+                this.cleanStubs();
+            }
+            
             this.parent.childCompleted(this);
 
             return this;
+        }
+    }
+});
+
+Class(Tellurium, 'ConsoleReporter')({
+    prototype : {
+        tellurium     : function(){
+            console.log('Tellurium Test Results');
+            for (var i=0; i < Tellurium.children.length; i++) {
+                this.suite(Tellurium.children[i]);
+            };
+            console.log('End')
+        },
+        suite         : function(suite){
+            console.group(suite.description);
+            
+            for (var i=0; i < suite.children.length; i++) {
+                if(suite.children[i] instanceof Tellurium.Description){
+                    this.description(suite.children[i]);
+                }
+                else if(suite.children[i] instanceof Tellurium.Specification){
+                    this.specification(suite.children[i]);
+                }
+            }
+            
+            console.groupEnd(suite.description);
+        },
+        description   : function(description){
+            console.group(description.description);
+            
+            for (var i=0; i < description.children.length; i++) {
+                if(description.children[i] instanceof Tellurium.Description){
+                    this.description(description.children[i]);
+                }
+                else if(description.children[i] instanceof Tellurium.Specification){
+                    this.specification(description.children[i]);
+                }
+            };
+            
+            console.groupEnd(description.description);
+        },
+        specification : function(specification){
+            if(specification.status == specification.STATUS_FAIL) {
+                console.error(specification.description, specification.status);
+            }
+            else if( specification.status == specification.STATUS_SUCCESS ){
+                console.info(specification.description, specification.status);
+            }
+            else if( specification.status == specification.STATUS_PENDANT ){
+                console.warn(specification.description, specification.status);
+            }
+        },
+        assertion     : function(assertion){
+            
         }
     }
 });

@@ -11,6 +11,11 @@ Tellurium.suite('Tellurium')(function(){
             this.completed();
         });
         
+        this.specify('a failing test')(function(){
+            this.assert(1).toBe(2);
+            this.completed();
+        });
+        
         this.specify('spy on an object syntax')(function () {
             var object = {
                 spied : function(){
@@ -20,14 +25,16 @@ Tellurium.suite('Tellurium')(function(){
             
             var spy    = this.spy().on(object).method('spied');
             var result = object.spied();
+            
             this.assert(spy).toBeCalled();
-            this.assert(result).toBe('spied');
+            this.assert(result).toEqual('spied');
             this.completed();
         });
         
         this.specify('spec assertions must be equal to assertion run')(function(){
             this.assert(this.assertions.length).toBe(0);
             this.assert(this.assertions.length).toBe(1);
+            this.completed();
         });
         
         this.specify('stub a method on an object')(function(){
@@ -41,9 +48,10 @@ Tellurium.suite('Tellurium')(function(){
                 return 'stubed'
             });
             
-            var result = object.stubed();
+            var result = x.stubed();
             
             this.assert(result).toBe('stubed');
+            this.completed();
         });
     });
     
