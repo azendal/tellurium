@@ -92,6 +92,13 @@ Tellurium.suite('Tellurium')(function(){
             
         });
         
+        this.describe('beTruthy matcher')(function(){
+            this.specify('must work')(function(){
+                this.assert(1).toBeTruthy();
+                this.completed();
+            });
+        });
+        
         this.describe('be Matcher')(function(){
             
             this.specify('Array1 is identical to Array1')(function(){
