@@ -74,7 +74,7 @@ Tellurium.suite('Tellurium')(function(){
     
     this.describe('basic matchers')(function(){
         
-        this.beforeEach(function(spec){
+        this.beforeEach(function(description, spec){
             
             spec.registry.arr = [];
             spec.registry.obj = {};
@@ -89,6 +89,8 @@ Tellurium.suite('Tellurium')(function(){
             spec.registry.num2 = 1;
             spec.registry.str2 = 'x';
             spec.registry.reg2 = /x/;
+            
+            description.completed(this);
             
         });
         

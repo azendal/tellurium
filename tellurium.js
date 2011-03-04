@@ -293,26 +293,30 @@ Tellurium.Assertion.includeAssertions({
 
 Module(Tellurium, 'Context')({
     prototype : {
-        registry          : null,
-        description       : null,
-        code              : null,
-        parent            : null,
-        children          : null,
-        completedChildren : null,
-        beforeEachPool    : null,
-        afterEachPool     : null,
-        isCompleted       : null,
-        init              : function (description, code) {
-            this.registry          = [];
-            this.description       = description;
-            this.code              = code;
-            this.children          = [];
-            this.completedChildren = [];
-            this.beforeEachPool    = [];
-            this.afterEachPool     = [];
-            this.isCompleted       = false;
+        registry            : null,
+        description         : null,
+        code                : null,
+        parent              : null,
+        children            : null,
+        completedChildren   : null,
+        beforeEachPool      : null,
+        completedBeforeEach : null,
+        afterEachPool       : null,
+        completedAfterEach  : null,
+        isCompleted         : null,
+        init                : function (description, code) {
+            this.registry            = [];
+            this.description         = description;
+            this.code                = code;
+            this.children            = [];
+            this.completedChildren   = [];
+            this.beforeEachPool      = [];
+            this.completedBeforeEach = [];
+            this.completedAfterEach  = [];
+            this.afterEachPool       = [];
+            this.isCompleted         = false;
         },
-        appendChild       : function (child) {
+        appendChild         : function (child) {
             if (child.parent) {
                 child.parent.removeChild(child);
             }
@@ -322,12 +326,12 @@ Module(Tellurium, 'Context')({
 
             return child;
         },
-        setParent         : function (parent) {
+        setParent           : function (parent) {
             this.parent = parent;
 
             return this;
         },
-        describe          : function (description) {
+        describe            : function (description) {
             var current = this;
 
             return function (code) {
@@ -335,7 +339,7 @@ Module(Tellurium, 'Context')({
                 current.appendChild(describe);
             };
         },
-        specify           : function (description) {
+        specify             : function (description) {
             var current = this;
 
             return function (code) {
@@ -343,19 +347,19 @@ Module(Tellurium, 'Context')({
                 current.appendChild(specification);
             };
         },
-        setup             : function (code) { console.log('setup not implemented') },
-        teardown          : function (code) { console.log('teardown not implemented') },
-        beforeEach        : function (code) {
+        setup               : function (code) { console.log('setup not implemented') },
+        teardown            : function (code) { console.log('teardown not implemented') },
+        beforeEach          : function (code) {
             this.beforeEachPool.push(code);
 
             return this;
         },
-        afterEach         : function (code) {
+        afterEach           : function (code) {
             this.afterEachPool.push(code);
 
             return this;
         },
-        run               : function () {
+        run                 : function () {
             var i;
 
             this.code.call(this, this);
@@ -366,29 +370,29 @@ Module(Tellurium, 'Context')({
             
             for (i = 0; i < this.children.length; i++) {
                 if (this.children[i] instanceof Tellurium.Specification) {
-                    this.runBeforeEach(this.children[i]);
+                    this.runBeforeEach(this, this.children[i]);
                 }
                 this.children[i].run();
             }
 
             return this;
         },
-        runBeforeEach     : function (context) {
+        runBeforeEach       : function (specification, context) {
             var i;
             
-            context = context || this;
-
+            context = context || this
+            
             if (this.parent && this.parent.runBeforeEach) {
-                this.parent.runBeforeEach(context);
+                this.parent.runBeforeEach(specification, context);
             }
 
             for (i = 0; i < this.beforeEachPool.length; i++) {
-                this.beforeEachPool[i].call(context, context);
+                this.beforeEachPool[i].call(context, specification, context);
             }
 
             return this;
         },
-        runAfterEach      : function (context) {
+        runAfterEach        : function (context) {
             var i;
             
             context = context || this;
@@ -403,7 +407,7 @@ Module(Tellurium, 'Context')({
 
             return this;
         },
-        childCompleted    : function (child) {
+        childCompleted      : function (child) {
             this.completedChildren.push(child);
 
             if (child instanceof Tellurium.Specification) {
@@ -416,7 +420,7 @@ Module(Tellurium, 'Context')({
 
             return this;
         },
-        completed         : function () {
+        completed           : function () {
             this.isCompleted = true;
             
             if (this.spies) {
