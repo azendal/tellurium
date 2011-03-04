@@ -152,6 +152,16 @@ Tellurium.suite('Tellurium')(function(){
             });
             
         });
+        this.describe('throw Matchers')(function(){
+            this.specify('a thrown error is catched and matched against expected')(function(){
+                this.assert(function(){ throw 'catch-this'; }).toThrowError('catch-this');
+                this.completed();
+            });
+            this.specify('a function that does not throw an error')(function(){
+                this.assert(function() { return "don't throw error" }).toNotThrowError();
+                this.completed();
+            });
+        });
         
     });
     

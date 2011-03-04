@@ -270,6 +270,24 @@ Tellurium.Assertion.includeAssertions({
     },
     toBeInstanceOf  : function (expected) {
         return (this.actual.constructor === expected);
+    },
+    toThrowError    : function (expected) {
+        try {
+          this.actual();
+        } catch (e) {
+            if (e === expected || e.name === expected) {
+                return true;
+            }
+        }
+        return false;
+    },
+    toNotThrowError : function () {
+        try {
+            this.actual();
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 });
 
