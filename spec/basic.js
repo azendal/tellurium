@@ -74,7 +74,7 @@ Tellurium.suite('Tellurium')(function(){
     
     this.describe('basic matchers')(function(){
         
-        this.beforeEach(function(spec){
+        this.beforeEach(function(description, spec){
             
             spec.registry.arr = [];
             spec.registry.obj = {};
@@ -89,6 +89,8 @@ Tellurium.suite('Tellurium')(function(){
             spec.registry.num2 = 1;
             spec.registry.str2 = 'x';
             spec.registry.reg2 = /x/;
+            
+            description.completed(this);
             
         });
         
@@ -151,6 +153,16 @@ Tellurium.suite('Tellurium')(function(){
                 this.completed();
             });
             
+        });
+        this.describe('throw Matchers')(function(){
+            this.specify('a thrown error is catched and matched against expected')(function(){
+                this.assert(function(){ throw 'catch-this'; }).toThrowError('catch-this');
+                this.completed();
+            });
+            this.specify('a function that does not throw an error')(function(){
+                this.assert(function() { return "don't throw error" }).toNotThrowError();
+                this.completed();
+            });
         });
         
     });
