@@ -12,6 +12,10 @@ Tellurium.suite('Tellurium')(function(){
             this.completed();
         });
         
+        this.specify('use on sync').sync()(function(){
+            this.assert(1).toEqual(1);
+        });
+        
         this.specify('an async test')(function(){
             var spec = this;
             setTimeout(function(){

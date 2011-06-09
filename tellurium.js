@@ -341,11 +341,19 @@ Module(Tellurium, 'Context')({
         },
         specify             : function (description) {
             var current = this;
-
-            return function (code) {
+            var sync    = false;
+            var fn      = function (code) {
                 var specification = new Tellurium.Specification(description, code);
+                specification.sync = sync;
                 current.appendChild(specification);
             };
+            
+            fn.sync = function(){
+                sync = true;
+                return fn;
+            };
+            
+            return fn;
         },
         setup               : function (code) { console.log('setup not implemented') },
         teardown            : function (code) { console.log('teardown not implemented') },
@@ -456,6 +464,7 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
         registry        : null,
         status          : null,
         isCompleted     : null,
+        sync            : false,
         init            : function (description, code) {
             this.description = description;
             this.code        = code;
@@ -470,6 +479,9 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
         run             : function () {
             if (this.code) {
                 this.code.call(this, this);
+                if(this.sync === true){
+                    this.completed();
+                }
             }
             else {
                 this.pendant();
