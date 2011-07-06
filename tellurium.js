@@ -124,10 +124,11 @@ Class(Tellurium, 'Spy')({
             spy = this;
             this.originalMethod = this.targetObject[this.methodName];
             this.targetObject[this.methodName] = function () {
-                var args;
+                var args, result;
                 args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                spy.called.push(args);
-                return spy.originalMethod.apply(spy.targetObject, args);
+                result = spy.originalMethod.apply(spy.targetObject, args);
+                spy.called.push({arguments : args, returned : result});
+                return result;
             };
             return this;
         },
@@ -260,7 +261,10 @@ Tellurium.Assertion.includeAssertions({
         return (this.actual.called.length > 0);
     },
     toBeCalledWith  : function (expected) {
-        return (this.actual.called[0] === expected);
+        return (this.actual.called[0].arguments === expected);
+    },
+    toReturn        : function (expected) {
+        return (this.actual.called[0].returned === expected);
     },
     toBeGreaterThan : function (expected) {
         return (this.actual > expected);
@@ -470,6 +474,8 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
             this.code        = code;
             this.registry    = {};
             this.assertions  = [];
+            this.spies       = [];
+            this.stubs       = [];
             this.isCompleted = false;
         },
         setParent       : function (parent) {
