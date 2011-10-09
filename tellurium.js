@@ -13,19 +13,37 @@ Module('Tellurium')({
 
         return factory;
     },
-    run               : function () {
-        var i;
+    run               : function (ids) {
+        var i, j, id;
+        
+        if (typeof ids == 'string') {
+            ids = [ids];
+        }
         
         if (this.reporter === null) {
             this.reporter = new Tellurium.Reporter.Firebug();
         }
         
         console.time('run');
-
-        for (i = 0; i < this.children.length; i++) {
-            window.setTimeout(function(){
-                Tellurium.children[i].run();
-            }, 0);
+        
+        if (ids) {
+            for (var j=0; j < ids.length; j++) {
+                id = ids[j];
+                for (i = 0; i < this.children.length; i++) {
+                    if (this.children[i].id == id) {
+                        //window.setTimeout(function(){
+                            Tellurium.children[i].run();
+                        //}, 0);
+                    }
+                }
+            }
+        }
+        else {
+            for (i = 0; i < this.children.length; i++) {
+                //window.setTimeout(function(){
+                    Tellurium.children[i].run();
+                //}, 0);
+            }
         }
 
         return this;
@@ -474,7 +492,11 @@ Module(Tellurium, 'Context')({
     }
 });
 
-Class(Tellurium, 'Suite').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({});
+Class(Tellurium, 'Suite').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({
+    prototype : {
+        id : ''
+    }
+});
 
 Class(Tellurium, 'Description').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({});
 
