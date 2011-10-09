@@ -23,7 +23,9 @@ Module('Tellurium')({
         console.time('run');
 
         for (i = 0; i < this.children.length; i++) {
-            this.children[i].run();
+            window.setTimeout(function(){
+                Tellurium.children[i].run();
+            }, 0);
         }
 
         return this;
@@ -303,6 +305,8 @@ Module(Tellurium, 'Context')({
         parent              : null,
         children            : null,
         completedChildren   : null,
+        setupPool           : null,
+        tearDownPool        : null,
         beforeEachPool      : null,
         completedBeforeEach : null,
         afterEachPool       : null,
@@ -314,6 +318,8 @@ Module(Tellurium, 'Context')({
             this.code                = code;
             this.children            = [];
             this.completedChildren   = [];
+            this.setupPool           = [];
+            this.tearDownPool        = [];
             this.beforeEachPool      = [];
             this.completedBeforeEach = [];
             this.completedAfterEach  = [];
@@ -359,8 +365,16 @@ Module(Tellurium, 'Context')({
             
             return fn;
         },
-        setup               : function (code) { console.log('setup not implemented') },
-        teardown            : function (code) { console.log('teardown not implemented') },
+        setup               : function (code) {
+            this.setupPool.push(code);
+            
+            return this;
+        },
+        teardown            : function (code) {
+            this.tearDownPool.push(code);
+            
+            return this;
+        },
         beforeEach          : function (code) {
             this.beforeEachPool.push(code);
 
@@ -378,6 +392,10 @@ Module(Tellurium, 'Context')({
 
             if (this.children.length === 0) {
                 this.completed();
+            }
+            
+            for (var i=0; i < this.setupPool.length; i++) {
+                this.setupPool[i].call(this, this);
             }
             
             for (i = 0; i < this.children.length; i++) {
@@ -441,6 +459,10 @@ Module(Tellurium, 'Context')({
             
             if (this.stubs) {
                 this.cleanStubs();
+            }
+            
+            for (var i=0; i < this.tearDownPool.length; i++) {
+                this.tearDownPool[i].call(this, this);
             }
             
             if (this.parent) {
