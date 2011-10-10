@@ -319,8 +319,8 @@ Module(Tellurium, 'Context')({
         parent              : null,
         children            : null,
         completedChildren   : null,
-        setupPool           : null,
-        tearDownPool        : null,
+        setupCode           : null,
+        tearDownCode        : null,
         beforeEachPool      : null,
         completedBeforeEach : null,
         afterEachPool       : null,
@@ -332,8 +332,6 @@ Module(Tellurium, 'Context')({
             this.code                = code;
             this.children            = [];
             this.completedChildren   = [];
-            this.setupPool           = [];
-            this.tearDownPool        = [];
             this.beforeEachPool      = [];
             this.completedBeforeEach = [];
             this.completedAfterEach  = [];
@@ -355,12 +353,24 @@ Module(Tellurium, 'Context')({
 
             return this;
         },
+        setup               : function (code) {
+            var description = 'setup code';
+            this.setupCode = new Tellurium.Description(description, code);
+            return this;
+        }, 
+        tearDown            : function (code) {
+            var description = 'tear down code';
+            this.tearDownCode = new Tellurium.Description(description, code);
+            return this;
+        },
         describe            : function (description) {
             var current = this;
 
             return function (code) {
                 var describe = new Tellurium.Description(description, code);
                 current.appendChild(describe);
+                
+                return current;
             };
         },
         specify             : function (description) {
@@ -378,16 +388,6 @@ Module(Tellurium, 'Context')({
             };
             
             return fn;
-        },
-        setup               : function (code) {
-            this.setupPool.push(code);
-            
-            return this;
-        },
-        teardown            : function (code) {
-            this.tearDownPool.push(code);
-            
-            return this;
         },
         beforeEach          : function (code) {
             this.beforeEachPool.push(code);
@@ -408,8 +408,8 @@ Module(Tellurium, 'Context')({
                 this.completed();
             }
             
-            for (var i=0; i < this.setupPool.length; i++) {
-                this.setupPool[i].call(this, this);
+            if (this.setupCode) {
+                this.setupCode.run();
             }
             
             for (i = 0; i < this.children.length; i++) {
@@ -475,8 +475,8 @@ Module(Tellurium, 'Context')({
                 this.cleanStubs();
             }
             
-            for (var i=0; i < this.tearDownPool.length; i++) {
-                this.tearDownPool[i].call(this, this);
+            if (this.tearDownCode) {
+                this.tearDownCode.run();
             }
             
             if (this.parent) {
