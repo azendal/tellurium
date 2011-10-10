@@ -31,18 +31,14 @@ Module('Tellurium')({
                 id = ids[j];
                 for (i = 0; i < this.children.length; i++) {
                     if (this.children[i].id == id) {
-                        //window.setTimeout(function(){
-                            Tellurium.children[i].run();
-                        //}, 0);
+                        Tellurium.children[i].run();
                     }
                 }
             }
         }
         else {
             for (i = 0; i < this.children.length; i++) {
-                //window.setTimeout(function(){
-                    Tellurium.children[i].run();
-                //}, 0);
+                Tellurium.children[i].run();
             }
         }
 
@@ -534,10 +530,10 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
                 }
             }
             else {
-                this.pendant();
+                this.pending();
             }
         },
-        pendant         : function () {
+        pending         : function () {
             this.status = this.STATUS_PENDING;
             this.completed();  
         },
@@ -592,7 +588,7 @@ Class(Tellurium.Reporter, 'Firebug')({
             this.totalSpecs   = 0;
             this.failedSpecs  = 0;
             this.passedSpecs  = 0;
-            this.pendantSpecs = 0;
+            this.pendingSpecs = 0;
         },
         run           : function () {
             console.log('Tellurium Test Results');
@@ -602,7 +598,7 @@ Class(Tellurium.Reporter, 'Firebug')({
             console.info('Total: ', this.totalSpecs);
             console.info('Passed: ', this.passedSpecs);
             console.error('Failed: ', this.failedSpecs);
-            console.warn('Pending: ', this.pendantSpecs);
+            console.warn('Pending: ', this.pendingSpecs);
             console.log('End')
         },
         suite         : function (suite) {
@@ -644,7 +640,7 @@ Class(Tellurium.Reporter, 'Firebug')({
                 console.info(specification.description, '');
             }
             else if( specification.status == specification.STATUS_PENDING ){
-                this.pendantSpecs = this.pendantSpecs + 1;
+                this.pendingSpecs = this.pendingSpecs + 1;
                 console.warn(specification.description, '');
             }
             
