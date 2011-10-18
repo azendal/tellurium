@@ -20,23 +20,19 @@ Module('Tellurium')({
             ids = [ids];
         }
         
-        if (this.reporter === null) {
-            this.reporter = new Tellurium.Reporter.Firebug();
-        }
-        
-        console.time('run');
-        
         if (ids) {
+            console.time('run ' + ids.join(', '));
             for (var j=0; j < ids.length; j++) {
                 id = ids[j];
                 for (i = 0; i < this.children.length; i++) {
-                    if (this.children[i].id == id) {
+                    if (this.children[i].description == id) {
                         Tellurium.children[i].run();
                     }
                 }
             }
         }
         else {
+            console.time('run all');
             for (i = 0; i < this.children.length; i++) {
                 Tellurium.children[i].run();
             }
@@ -46,7 +42,13 @@ Module('Tellurium')({
     },
     childCompleted    : function (child) {
         this.completedChildren.push(child);
-
+        
+        if (this.reporter === null) {
+            this.reporter = new Tellurium.Reporter.Firebug();
+        }
+        
+        this.reporter.run(child);
+        
         if (this.children.length === this.completedChildren.length) {
             this.completed();
         }
@@ -55,8 +57,7 @@ Module('Tellurium')({
     },
     completed         : function () {
         this.isCompleted = true;
-        console.timeEnd('run');
-        this.reporter.run();
+        console.timeEnd('run all');
         return this;
     }
 });
@@ -364,14 +365,65 @@ Module(Tellurium, 'Context')({
             return this;
         },
         describe            : function (description) {
-            var current = this;
-
-            return function (code) {
+            var current, fn, guided;
+            
+            current = this;
+            
+            fn = function (code) {
                 var describe = new Tellurium.Description(description, code);
+                
+                if (guided === true) {
+                    describe.guided = true;
+                    var index = 0;
+                    describe.run = function(){
+                        this.code.call(this, this);
+
+                        if (this.children.length === 0) {
+                            this.completed();
+                        }
+
+                        if (this.setupCode) {
+                            this.setupCode.run();
+                        }
+
+                        this.children[index].run();
+
+                        return this;
+                    };
+                    
+                    describe.childCompleted = function(child){
+                        this.completedChildren.push(child);
+
+                        if (child instanceof Tellurium.Specification) {
+                            this.runAfterEach(child);
+                        }
+                        
+                        if (this.children.length === this.completedChildren.length) {
+                            this.completed();
+                        }
+                        else {
+                            index = index + 1;
+                            this.children[index].run();
+                        }
+
+                        return this;
+                    };
+                }
+                else {
+                    describe.guided = false;
+                }
+                
                 current.appendChild(describe);
                 
                 return current;
             };
+            
+            fn.guided = function(){
+                guided = true;
+                return fn;
+            };
+            
+            return fn;
         },
         specify             : function (description) {
             var current = this;
@@ -488,13 +540,13 @@ Module(Tellurium, 'Context')({
     }
 });
 
-Class(Tellurium, 'Suite').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({
+Class(Tellurium, 'Suite').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({});
+
+Class(Tellurium, 'Description').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({
     prototype : {
-        id : ''
+        guided : false
     }
 });
-
-Class(Tellurium, 'Description').includes(Tellurium.Context, Tellurium.Stub.Factory, Tellurium.Spy.Factory)({});
 
 Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy.Factory)({
     prototype : {
@@ -584,17 +636,19 @@ Tellurium.Reporter = {};
 
 Class(Tellurium.Reporter, 'Firebug')({
     prototype : {
+        totalSpecs    : null,
+        failedSpecs   : null,
+        passedSpecs   : null,
+        pendingSpecs  : null,
         init          : function () {
             this.totalSpecs   = 0;
             this.failedSpecs  = 0;
             this.passedSpecs  = 0;
             this.pendingSpecs = 0;
         },
-        run           : function () {
-            console.log('Tellurium Test Results');
-            for (var i=0; i < Tellurium.children.length; i++) {
-                this.suite(Tellurium.children[i]);
-            };
+        run           : function (suite) {
+            console.log('Tellurium Test Results for ' + suite.description);
+            this.suite(suite);
             console.info('Total: ', this.totalSpecs);
             console.info('Passed: ', this.passedSpecs);
             console.error('Failed: ', this.failedSpecs);
