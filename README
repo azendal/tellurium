@@ -1,5 +1,24 @@
 Tellurium is a JavaScript Testing Framework using testing patterns like Mock, Stub, and Spy.
-this framework tries to go as close as possible with EcmaScript behaviour. so if you used anothers language
+
+This framework tries to go as close as possible with EcmaScript behaviour. so if you used anothers language
 testing frameworks you may find that some of your tools are not here but trust me its better this way.
 
-you still can extend the framework so easy, it was written in a couple of days, actually testing it with itself was the hardest part, so you should be able to extend it easily.
+Can you use it?
+Yes Tellurium is tested with Tellurium
+
+Is is used for other projects?
+Yes it is but not many yet. but it really works, if not pls send me an issue or an email.
+
+Ok how can I use it?
+
+var someObj = {
+  good : true;
+};
+
+Tellurium.suite('my first test')({
+  this.specify('someObj must be good')({
+    this.assert(someObj.good).toBe(true);
+  });
+});
+
+Tellurium.run();
