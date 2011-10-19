@@ -16,17 +16,20 @@ Module('Tellurium')({
     run               : function (ids) {
         var i, j, id;
         
+        this.completedChildren = [];
+        this.isCompleted       = false;
+        
         if (typeof ids == 'string') {
             ids = [ids];
         }
         
         if (ids) {
-            console.time('run ' + ids.join(', '));
             for (var j=0; j < ids.length; j++) {
                 id = ids[j];
                 for (i = 0; i < this.children.length; i++) {
                     if (this.children[i].description == id) {
-                        Tellurium.children[i].run();
+                        console.time('run ' + this.children[i].description);
+                        this.children[i].run();
                     }
                 }
             }
@@ -46,7 +49,7 @@ Module('Tellurium')({
         if (this.reporter === null) {
             this.reporter = new Tellurium.Reporter.Firebug();
         }
-        
+        console.timeEnd('run ' + child.description);
         this.reporter.run(child);
         
         if (this.children.length === this.completedChildren.length) {
@@ -453,6 +456,9 @@ Module(Tellurium, 'Context')({
         },
         run                 : function () {
             var i;
+            
+            this.children = [];
+            this.completedChildren = [];
 
             this.code.call(this, this);
 
@@ -648,6 +654,11 @@ Class(Tellurium.Reporter, 'Firebug')({
         },
         run           : function (suite) {
             console.log('Tellurium Test Results for ' + suite.description);
+            this.totalSpecs   = 0;
+            this.passedSpecs  = 0;
+            this.failedSpecs  = 0;
+            this.pendingSpecs = 0;
+            
             this.suite(suite);
             console.info('Total: ', this.totalSpecs);
             console.info('Passed: ', this.passedSpecs);
