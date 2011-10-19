@@ -388,7 +388,11 @@ Module(Tellurium, 'Context')({
                         if (this.setupCode) {
                             this.setupCode.run();
                         }
-
+                        
+                        if (this.children[index] instanceof Tellurium.Specification) {
+                            this.runBeforeEach(this, this.children[index]);
+                        }
+                        
                         this.children[index].run();
 
                         return this;
@@ -406,6 +410,9 @@ Module(Tellurium, 'Context')({
                         }
                         else {
                             index = index + 1;
+                            if (this.children[index] instanceof Tellurium.Specification) {
+                                this.runBeforeEach(this, this.children[index]);
+                            }
                             this.children[index].run();
                         }
 
