@@ -64,6 +64,7 @@ Module('Tellurium')({
         return this;
     }
 });
+Te = Tellurium;
 
 Class(Tellurium, 'Stub')({
     prototype : {
@@ -729,7 +730,7 @@ Class(Tellurium.Reporter, 'Firebug')({
                 console.info(assertion.actual, ' ', assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
             }
             else if(assertion.status == assertion.STATUS_FAIL){
-                console.info(assertion.actual, ' ', assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
+                console.error(assertion.actual, ' ', assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
             }
         }
     }
