@@ -4,6 +4,11 @@
 
 Tellurium is a JavaScript Testing Framework using testing patterns like Mock, Stub, and Spy.
 
+Support asynchronous specifications by default
+Support syncronous specifications via .sync()
+Support Scripted test by default
+Support guided tests via .guided()
+
 This framework tries to go as close as possible with EcmaScript behaviour. so if you used anothers language
 testing frameworks you may find that some of your tools are not here but trust me its better this way.
 
