@@ -670,7 +670,7 @@ Class(Tellurium.Reporter, 'Firebug')({
             this.suite(suite);
             console.info('Total: ', this.totalSpecs);
             console.info('Passed: ', this.passedSpecs);
-            console.error('Failed: ', this.failedSpecs);
+            console.info('%cFailed: ' + this.failedSpecs, 'background-color:#FFEBEB; color : #FF2424');
             console.warn('Pending: ', this.pendingSpecs);
             console.log('End')
         },
