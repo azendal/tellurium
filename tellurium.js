@@ -725,12 +725,12 @@ Class(Tellurium.Reporter, 'Firebug')({
             
         },
         assertion     : function (assertion) {
-
+            var not = (assertion.type == Tellurium.Assertion.prototype.TYPE_FALSE) ? ' not ' : ' ';
             if(assertion.status == assertion.STATUS_SUCCESS){
-                console.info(assertion.actual, ' ', assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
+                console.info(assertion.actual, not, assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
             }
             else if(assertion.status == assertion.STATUS_FAIL){
-                console.error(assertion.actual, ' ', assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
+                console.error(assertion.actual, not, assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '')
             }
         }
     }
