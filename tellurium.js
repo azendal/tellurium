@@ -24,7 +24,7 @@ Module('Tellurium')({
         }
         
         if (ids) {
-            for (var j=0; j < ids.length; j++) {
+            for (j = 0; j < ids.length; j++) {
                 id = ids[j];
                 for (i = 0; i < this.children.length; i++) {
                     if (this.children[i].description == id) {
