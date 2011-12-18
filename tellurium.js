@@ -1,4 +1,4 @@
-Module('Tellurium')({
+var Te = Module('Tellurium')({
     children          : [],
     completedChildren : [],
     isCompleted       : false,
@@ -33,8 +33,7 @@ Module('Tellurium')({
                     }
                 }
             }
-        }
-        else {
+        } else {
             console.time('run all');
             for (i = 0; i < this.children.length; i++) {
                 Tellurium.children[i].run();
@@ -64,7 +63,6 @@ Module('Tellurium')({
         return this;
     }
 });
-Te = Tellurium;
 
 Class(Tellurium, 'Stub')({
     prototype : {
@@ -359,13 +357,11 @@ Module(Tellurium, 'Context')({
             return this;
         },
         setup               : function (code) {
-            var description = 'setup code';
-            this.setupCode = new Tellurium.Description(description, code);
+            this.setupCode = new Tellurium.Executable(code);
             return this;
         }, 
         tearDown            : function (code) {
-            var description = 'tear down code';
-            this.tearDownCode = new Tellurium.Description(description, code);
+            this.tearDownCode = new Tellurium.Executable(code);
             return this;
         },
         describe            : function (description) {
@@ -463,8 +459,9 @@ Module(Tellurium, 'Context')({
             return this;
         },
         run                 : function () {
-            var i;
+            var i, context;
             
+            context = this;
             this.children = [];
             this.completedChildren = [];
 
@@ -475,14 +472,22 @@ Module(Tellurium, 'Context')({
             }
             
             if (this.setupCode) {
+                this.setupCode.onCompleted(function () {
+                    for (i = 0; i < context.children.length; i++) {
+                        if (context.children[i] instanceof Tellurium.Specification) {
+                            context.runBeforeEach(context, context.children[i]);
+                        }
+                        context.children[i].run();
+                    }
+                });
                 this.setupCode.run();
-            }
-            
-            for (i = 0; i < this.children.length; i++) {
-                if (this.children[i] instanceof Tellurium.Specification) {
-                    this.runBeforeEach(this, this.children[i]);
+            } else {
+                for (i = 0; i < this.children.length; i++) {
+                    if (this.children[i] instanceof Tellurium.Specification) {
+                        this.runBeforeEach(this, this.children[i]);
+                    }
+                    this.children[i].run();
                 }
-                this.children[i].run();
             }
 
             return this;
@@ -490,7 +495,7 @@ Module(Tellurium, 'Context')({
         runBeforeEach       : function (specification, context) {
             var i;
             
-            context = context || this
+            context = context || this;
             
             if (this.parent && this.parent.runBeforeEach) {
                 this.parent.runBeforeEach(specification, context);
@@ -531,6 +536,10 @@ Module(Tellurium, 'Context')({
             return this;
         },
         completed           : function () {
+            var context; 
+            
+            context = this;
+            
             this.isCompleted = true;
             
             if (this.spies) {
@@ -542,13 +551,46 @@ Module(Tellurium, 'Context')({
             }
             
             if (this.tearDownCode) {
+                this.tearDownCode.onCompleted(function () {
+                    if (context.parent) {
+                        context.parent.childCompleted(context);
+                    }
+                });
                 this.tearDownCode.run();
-            }
-            
-            if (this.parent) {
-                this.parent.childCompleted(this);
+            } else {
+                if (this.parent) {
+                    this.parent.childCompleted(this);
+                }
             }
 
+            return this;
+        }
+    }
+});
+
+Class(Tellurium, 'Executable')({
+    prototype : {
+        code : null,
+        isCompleted : null,
+        isAsynchronous : true,
+        init : function (code) {
+            this.code = code;
+        },
+        completed : function () {
+            this.isCompleted = true;
+            this.onCompletedCode();
+            return this;
+        },
+        run : function () {
+            this.isCompleted = false;
+            this.code.apply(this);
+            return this;
+        },
+        onCompleted : function(code) {
+            this.onCompletedCode = function () {
+                code();
+                return this;
+            };
             return this;
         }
     }
@@ -603,14 +645,14 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
             this.status = this.STATUS_PENDING;
             this.completed();  
         },
-        assertionPassed : function (assertion) {
+        assertionPassed : function () {
             if (this.status !== this.STATUS_FAIL) {
                 this.status = this.STATUS_SUCCESS;
             }
 
             return this;
         },
-        assertionFailed : function (assertion) {
+        assertionFailed : function () {
             this.status = this.STATUS_FAIL;
 
             return this;

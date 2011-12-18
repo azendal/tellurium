@@ -12,7 +12,7 @@ Tellurium.suite('Tellurium')(function(){
             this.completed();
         });
         
-        this.specify('use on sync').sync()(function(){
+        this.specify('use of sync').sync()(function(){
             this.assert(1).toEqual(1);
         });
         
@@ -66,7 +66,7 @@ Tellurium.suite('Tellurium')(function(){
             };
             
             this.stub().method('stubed').on(x).using(function(){
-                return 'stubed'
+                return 'stubed';
             });
             
             var result = x.stubed();
@@ -158,17 +158,45 @@ Tellurium.suite('Tellurium')(function(){
             });
             
         });
+        
         this.describe('throw Matchers')(function(){
             this.specify('a thrown error is catched and matched against expected')(function(){
                 this.assert(function(){ throw 'catch-this'; }).toThrowError('catch-this');
                 this.completed();
             });
             this.specify('a function that does not throw an error')(function(){
-                this.assert(function() { return "don't throw error" }).toNotThrowError();
+                this.assert(function() { 
+                    return "don't throw error";
+                }).toNotThrowError();
                 this.completed();
             });
         });
         
+    });
+    
+    this.describe('usage of setup')(function () {
+            
+        this.setup(function () {
+            var setup = this;
+            setTimeout(function () {
+                console.log('setup');
+                setup.completed();
+            }, 1000);
+        });
+        
+        this.tearDown(function () {
+            var tearDown = this;
+            setTimeout(function () {
+                console.log('teardown');
+                tearDown.completed();
+            }, 1000);
+        });
+        
+        this.specify('necesary matcher')(function () {
+            console.log('specification');
+            this.assert(true).toBe(true);
+            this.completed();
+        });
     });
     
 });
