@@ -212,10 +212,15 @@ Class(Tellurium, 'Assertion')({
         spec              : null,
         status            : null,
         type              : null,
+        label             : null,
         init              : function (actual, spec) {
             this.type   = this.TYPE_TRUE;
             this.actual = actual;
             this.spec   = spec;
+        },
+        withLabel         : function (label) {
+            this.label = label;
+            return this;
         },
         not               : function () {
             this.type = this.TYPE_FALSE;
@@ -250,7 +255,7 @@ Class(Tellurium, 'Assertion')({
                 this.invoqued = name;
                 this.expected = args;
                 this.notify(assertFn.apply(this, args));
-                return null;
+                return this;
             };
 
             return this;
@@ -656,6 +661,12 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
             return this;
         },
         assert          : function (actual) {
+            
+            if (this.isCompleted === true) {
+                throw "called assert on a completed test";
+                return this;
+            }
+            
             var assertion = new Tellurium.Assertion(actual, this);
             this.assertions.push(assertion);
             return assertion;
@@ -664,6 +675,11 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
             return {};
         },
         completed       : function () {
+
+            if (this.isCompleted === true) {
+                throw "called completed more than once for test";
+                return this;
+            }
 
             this.isCompleted = true;
 
@@ -775,9 +791,9 @@ Class(Tellurium.Reporter, 'Firebug')({
             }
 
             if (assertion.status === assertion.STATUS_SUCCESS) {
-                console.info(assertion.actual, not, assertion.invoqued, ' ', assertion.expected || '');
+                console.info(assertion.label, assertion.actual, not, assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '');
             } else if (assertion.status === assertion.STATUS_FAIL) {
-                console.error(assertion.actual, not, assertion.invoqued, ' ', assertion.expected || '');
+                console.error(assertion.label, assertion.actual, not, assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '');
             }
         }
     }
