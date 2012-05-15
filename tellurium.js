@@ -129,6 +129,7 @@ Class(Tellurium, 'Spy')({
         methodName     : null,
         spyMethod      : null,
         originalMethod : null,
+        objectHasMethod : null,
         called         : null,
         init           : function (config) {
             config = config || {};
@@ -141,11 +142,25 @@ Class(Tellurium, 'Spy')({
             var spy;
 
             spy = this;
+            if (this.targetObject.hasOwnProperty(this.methodName) === false) {
+                this.objectHasMethod = false;
+            } 
+            else {
+                this.objectHasMethod = true;
+            }
+            
             this.originalMethod = this.targetObject[this.methodName];
+
             this.targetObject[this.methodName] = function () {
                 var args, result;
                 args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                result = spy.originalMethod.apply(spy.targetObject, args);
+                var scope = this;
+                
+                if (this === spy) {
+                    scope = spy.targetObject;
+                }
+                
+                result = spy.originalMethod.apply(scope, args);
                 spy.called.push({
                     arguments : args,
                     returned : result
@@ -155,7 +170,12 @@ Class(Tellurium, 'Spy')({
             return this;
         },
         removeSpy      : function () {
-            this.targetObject[this.methodName] = this.originalMethod;
+            if (this.objectHasMethod === true) {
+                this.targetObject[this.methodName] = this.originalMethod;
+            }
+            else {
+                delete this.targetObject[this.methodName];
+            }
             return this;
         },
         on             : function (targetObject) {
