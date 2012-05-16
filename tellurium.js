@@ -507,8 +507,8 @@ Module(Tellurium, 'Context')({
                 this.setupCode.run();
             } else {
                 for (i = 0; i < this.children.length; i += 1) {
-                    if (this.children[i] instanceof Tellurium.Specification) {
-                        this.runBeforeEach(this, this.children[i]);
+                    if (this.children[i] instanceof Tellurium.Specification || this.children[i] instanceof Tellurium.Description) {
+                        this.runBeforeEach(this.children[i], this);
                     }
                     this.children[i].run();
                 }
@@ -516,32 +516,32 @@ Module(Tellurium, 'Context')({
 
             return this;
         },
-        runBeforeEach       : function (specification, context) {
+        runBeforeEach       : function (target, context) {
             var i;
 
             context = context || this;
 
             if (this.parent && this.parent.runBeforeEach) {
-                this.parent.runBeforeEach(specification, context);
+                this.parent.runBeforeEach(context, this.parent);
             }
 
             for (i = 0; i < this.beforeEachPool.length; i += 1) {
-                this.beforeEachPool[i].call(context, specification, context);
+                this.beforeEachPool[i].call(target, target, context);
             }
 
             return this;
         },
-        runAfterEach        : function (context) {
+        runAfterEach        : function (target, context) {
             var i;
 
             context = context || this;
 
             if (this.parent && this.parent.runAfterEach) {
-                this.parent.runAfterEach(context);
+                this.parent.runAfterEach(context, this.parent);
             }
 
             for (i = 0; i < this.afterEachPool.length; i += 1) {
-                this.afterEachPool[i].call(context, context);
+                this.afterEachPool[i].call(target, target, context);
             }
 
             return this;
@@ -549,8 +549,8 @@ Module(Tellurium, 'Context')({
         childCompleted      : function (child) {
             this.completedChildren.push(child);
 
-            if (child instanceof Tellurium.Specification) {
-                this.runAfterEach(child);
+            if (child instanceof Tellurium.Specification || child instanceof Tellurium.Description) {
+                this.runAfterEach(child, this);
             }
 
             if (this.children.length === this.completedChildren.length) {
