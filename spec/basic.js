@@ -93,9 +93,6 @@ Tellurium.suite('Tellurium')(function(){
             spec.registry.num2 = 1;
             spec.registry.str2 = 'x';
             spec.registry.reg2 = /x/;
-
-            description.completed(this);
-
         });
 
         this.describe('beTruthy matcher')(function(){
