@@ -537,7 +537,7 @@ Module(Tellurium, 'Context')({
             context = context || this;
 
             if (this.parent && this.parent.runAfterEach) {
-                this.parent.runAfterEach(context, this.parent);
+                this.parent.runAfterEach(target, context);
             }
 
             for (i = 0; i < this.afterEachPool.length; i += 1) {
