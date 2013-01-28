@@ -21,7 +21,7 @@ Tellurium.suite('Tellurium')(function(){
             setTimeout(function(){
                 spec.assert(1).toBe(1);
                 spec.completed();
-            }, 1000);
+            }, 200);
         });
 
         this.specify('another async test')(function(){
@@ -29,7 +29,7 @@ Tellurium.suite('Tellurium')(function(){
             setTimeout(function(){
                 spec.assert(1).toBe(1);
                 spec.completed();
-            }, 1000);
+            }, 100);
         });
 
         this.specify('usage of not')(function(){
@@ -72,6 +72,12 @@ Tellurium.suite('Tellurium')(function(){
             var result = x.stubed();
 
             this.assert(result).toBe('stubed');
+            this.completed();
+        });
+
+        this.specify('mock an object')(function () {
+            var mocked = this.mock();
+            this.assert(typeof mocked).toEqual('object');
             this.completed();
         });
     });
@@ -176,19 +182,21 @@ Tellurium.suite('Tellurium')(function(){
         this.setup(function () {
             var setup = this;
             setTimeout(function () {
+                window.setupRan = true;
                 setup.completed();
-            }, 1000);
+            }, 100);
         });
 
         this.tearDown(function () {
             var tearDown = this;
             setTimeout(function () {
+                delete window.setupRan;
                 tearDown.completed();
-            }, 1000);
+            }, 100);
         });
 
         this.specify('necesary matcher')(function () {
-            this.assert(true).toBe(true);
+            this.assert(window.setupRan).toBe(true).withLabel('window.setupRan must be true: ');
             this.completed();
         });
     });
