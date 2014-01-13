@@ -1,7 +1,7 @@
 if(typeof require !== 'undefined') {
-    
+
     console.log("Requiring Tellurium from file");
-    var Tellurium = require('../tellurium').Tellurium;
+    var Tellurium = require('../lib/tellurium').Tellurium;
 }
 
 var global = typeof window !== 'undefined' ? window : exports;
