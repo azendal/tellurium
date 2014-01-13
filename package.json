@@ -1,0 +1,13 @@
+{
+    "name"    : "tellurium",
+    "version" : "0.1.0",
+    "main"    : "./tellurium",
+    "repository": {
+        "type" : "git",
+        "url"  : "https://github.com/azendal/tellurium.git"
+    },
+    "keywords": ["test", "testing", "tdd", "test suite"],
+    "dependencies" : {
+        "neon" : "1.1.0"
+    }
+}

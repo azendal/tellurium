@@ -1,3 +1,10 @@
+if(typeof require !== 'undefined') {
+    
+    console.log("Requiring Tellurium from file");
+    var Tellurium = require('../tellurium').Tellurium;
+}
+
+var global = typeof window !== 'undefined' ? window : exports;
 Tellurium.suite('Tellurium')(function(){
 
     this.describe('not taking any action')(function () {
@@ -156,7 +163,7 @@ Tellurium.suite('Tellurium')(function(){
             });
 
             this.specify('undefined is identical to undefined no matter how you get it')(function(){
-                this.assert(window.undefined1).toBe(window.undefined2);
+                this.assert(global.undefined1).toBe(global.undefined2);
                 this.completed();
             });
 
@@ -182,7 +189,7 @@ Tellurium.suite('Tellurium')(function(){
         this.setup(function () {
             var setup = this;
             setTimeout(function () {
-                window.setupRan = true;
+                global.setupRan = true;
                 setup.completed();
             }, 100);
         });
@@ -190,15 +197,17 @@ Tellurium.suite('Tellurium')(function(){
         this.tearDown(function () {
             var tearDown = this;
             setTimeout(function () {
-                delete window.setupRan;
+                delete global.setupRan;
                 tearDown.completed();
             }, 100);
         });
 
         this.specify('necesary matcher')(function () {
-            this.assert(window.setupRan).toBe(true).withLabel('window.setupRan must be true: ');
+            this.assert(global.setupRan).toBe(true).withLabel('global.setupRan must be true: ');
             this.completed();
         });
     });
 
 });
+
+Tellurium.run();
