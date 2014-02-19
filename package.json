@@ -1,0 +1,14 @@
+{
+    "name"    : "tellurium",
+    "version" : "2.0.0",
+    "main"    : "./tellurium",
+    "description" : "JavaScript Testing Framework using testing patterns like Mock, Stub, and Spy",
+    "repository": {
+        "type" : "git",
+        "url"  : "https://github.com/azendal/tellurium.git"
+    },
+    "keywords": ["test", "testing", "tdd", "test suite"],
+    "dependencies" : {
+        "neon" : "2.0.0"
+    }
+}
