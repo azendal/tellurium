@@ -228,9 +228,9 @@ Creating such system is not very easy to organize but there was some work done b
 
 ### Objects from Tellurium
 
-* Tellurium (<<Module>> <<NameSpace>> <<Runner>>. is the initial point of almost all operations);
-* Tellurium.Stub (<<Constructor>>. Mechanism to define a non implemented property)
-* Tellurium.Stub.Factory (<<Module>>. Provides Stub functionality to an Object)
+* Tellurium ({Module} {NameSpace} {Runner}. is the initial point of almost all operations);
+* Tellurium.Stub ({Constructor}. Mechanism to define a non implemented property)
+* Tellurium.Stub.Factory ({Module}. Provides Stub functionality to an Object)
 * Tellurium.Spy
 * Tellurium.Spy.Factory
 * Tellurium.Assertion
