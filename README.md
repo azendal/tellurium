@@ -12,14 +12,14 @@ Tellurium is a JavaScript Testing Framework using testing patterns like Mock, St
 * Support guided tests via .guided()
 * ... (yes there is more but why dont you give it a try?)
 
-This framework tries to go as close as possible with EcmaScript behaviour. so if you used anothers language
+This framework tries to go as close as possible with EcmaScript behaviour. so if you used another language's
 testing frameworks you may find that some of your tools are not here but trust me its better this way.
 
 ## Does it work?
-Yes Tellurium is tested with Tellurium
+Yes Tellurium is tested with Tellurium and has been used to test some other programs too.
 
 ## Is is used for other projects?
-Yes it is but not many yet. but it really works, if not pls send me an issue or a msg.
+Yes and the number keeps growing. but it really works, if not pls send me an issue or a msg.
 
 ## Ok how can I use it?
 
@@ -37,7 +37,7 @@ Yes it is but not many yet. but it really works, if not pls send me an issue or 
 
 ## Theory of Operation
 
-Tellurium was designed to do front-end testing. this is a very important thing to consider because environment is very different from server side environments, so there is a number of objects that may be colliding and interacting to form a web application. Complex web applications tend to be event driven and not so much procedural because of the interaction of the user, network, and other events happening on the system in different order and on different times.
+Tellurium was designed to do front-end testing (Recently was updated to work on nodejs environments too). this is a very important thing to consider because environment is very different from server side environments, so there is a number of objects that may be colliding and interacting to form a web application. Complex web applications tend to be event driven and not so much procedural because of the interaction of the user, network, and other events happening on the system in different order and on different times.
 
 Creating such system is not very easy to organize but there was some work done before and following the principle of unix of having small units of code that perform one task well, Tellurium has a number of dependencies instead of trying to build everything from the ground up.
 
