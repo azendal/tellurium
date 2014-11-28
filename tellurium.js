@@ -55,8 +55,12 @@ Module('Tellurium')({
         if (this.reporter === null) {
             this.reporter = new Tellurium.Reporter.Console();
         }
+
+        this.reporter._colorsEnabled = this._colorsEnabled;
+
         // console.timeEnd('run ' + child.description);
         this.reporter.run(child);
+
 
         if (this.children.length === this.completedChildren.length) {
             this.completed();
@@ -78,7 +82,7 @@ Module('Tellurium')({
             String.prototype.hasOwnProperty("green") &&
             String.prototype.hasOwnProperty("underline") &&
             String.prototype.hasOwnProperty("bold")) {
-            this.Reporter.Console.colorsEnabled = true;
+            this._colorsEnabled = true;
         } else {
             console.warn("Colors requested but could not be enabled because 'colors' is not included");
         }
@@ -861,7 +865,7 @@ Class(Tellurium.Reporter, 'Console')({
                 pending: 'Pending: ' + this.pendingSpecs
             }
 
-            if (this.constructor.colorsEnabled) {
+            if (this._colorsEnabled) {
               reportStrings.passed = reportStrings.passed.green;
               reportStrings.failed = reportStrings.failed.red;
               reportStrings.pending = reportStrings.pending.yellow;
@@ -923,7 +927,7 @@ Class(Tellurium.Reporter, 'Console')({
                 this.failedSpecs = this.failedSpecs + 1;
                 statusString = "FAIL " + specification.description;
 
-                if (this.constructor.colorsEnabled) {
+                if (this._colorsEnabled) {
                     statusString = statusString.red;
                 }
 
@@ -932,7 +936,7 @@ Class(Tellurium.Reporter, 'Console')({
                 this.passedSpecs = this.passedSpecs + 1;
                 statusString = "PASS " + specification.description;
 
-                if (this.constructor.colorsEnabled) {
+                if (this._colorsEnabled) {
                     statusString = statusString.green;
                 }
 
@@ -941,7 +945,7 @@ Class(Tellurium.Reporter, 'Console')({
                 this.pendingSpecs = this.pendingSpecs + 1;
                 statusString = "PENDING " + specification.description;
 
-                if (this.constructor.colorsEnabled) {
+                if (this._colorsEnabled) {
                     statusString = statusString.yellow;
                 }
 
@@ -986,7 +990,7 @@ Class(Tellurium.Reporter, 'Console')({
 
             // For legibility, bolden the label. Makes everything easier to 
             // follow
-            if (this.constructor.colorsEnabled) {
+            if (this._colorsEnabled) {
                 labelText = labelText.bold;
             }
 
