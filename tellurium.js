@@ -69,6 +69,19 @@ Module('Tellurium')({
         this.isCompleted = true;
         // console.timeEnd('run all');
         return this;
+    },
+
+    enableColors : function () {
+        // Check if the colors extensions are there
+        if (String.prototype.hasOwnProperty("yellow") &&
+            String.prototype.hasOwnProperty("red") &&
+            String.prototype.hasOwnProperty("green") &&
+            String.prototype.hasOwnProperty("underline") &&
+            String.prototype.hasOwnProperty("bold")) {
+            this.Reporter.Console.colorsEnabled = true;
+        } else {
+            console.warn("Colors requested but could not be enabled because 'colors' is not included");
+        }
     }
 });
 
@@ -345,10 +358,12 @@ Tellurium.Assertion.includeAssertions({
     },
 
     toBeCalledWith : function (expected) {
+        this.__key = "arguments";
         return (this.actual.called[0].arguments === expected);
     },
 
     toReturn : function (expected) {
+        this.__key = "returned";
         return (this.actual.called[0].returned === expected);
     },
 
@@ -799,11 +814,26 @@ Tellurium.Reporter = {};
  * depending on your needs
  */
 Class(Tellurium.Reporter, 'Console')({
+    // These assertions don't need a value
+    EXPECTED_BLACKLIST : [
+      "toThrowError",
+      "toNotThrowError",
+      "toBeCalled",
+      "toBeDefined"
+    ],
+
+    ACTUAL_BLACKLIST : [
+      "toThrowError",
+      "toNotThrowError",
+      "toBeCalled"
+    ],
+
     prototype : {
-        totalSpecs    : null,
-        failedSpecs   : null,
-        passedSpecs   : null,
-        pendingSpecs  : null,
+        totalSpecs     : null,
+        failedSpecs    : null,
+        passedSpecs    : null,
+        pendingSpecs   : null,
+        _currentIndent : 1,
 
         init : function () {
             this.totalSpecs   = 0;
@@ -813,6 +843,8 @@ Class(Tellurium.Reporter, 'Console')({
         },
 
         run : function (suite) {
+            var reportStrings;
+
             console.log("===========================");
             console.log('Tellurium Test Results for ' + suite.description);
             this.totalSpecs   = 0;
@@ -821,18 +853,35 @@ Class(Tellurium.Reporter, 'Console')({
             this.pendingSpecs = 0;
 
             this.suite(suite);
-            console.info('Total: ', this.totalSpecs);
-            console.info('Passed: ', this.passedSpecs);
-            console.info('Failed: ' + this.failedSpecs);
-            console.warn('Pending: ', this.pendingSpecs);
+
+            reportStrings = {
+                total: 'Total: ' + this.totalSpecs,
+                passed: 'Passed: ' + this.passedSpecs,
+                failed: 'Failed: ' + this.failedSpecs,
+                pending: 'Pending: ' + this.pendingSpecs
+            }
+
+            if (this.constructor.colorsEnabled) {
+              reportStrings.passed = reportStrings.passed.green;
+              reportStrings.failed = reportStrings.failed.red;
+              reportStrings.pending = reportStrings.pending.yellow;
+            }
+
+            console.info(reportStrings.total);
+            console.info(reportStrings.passed);
+            console.info(reportStrings.failed);
+            console.warn(reportStrings.pending);
             console.log("===========================");
         },
 
         suite : function (suite) {
-            var i;
+            var i, indentString;
 
-            console.log('  ' + suite.description);
+            indentString = Array(this._currentIndent + 1).join("  ")
 
+            console.log(indentString + suite.description);
+
+            this._currentIndent++;
             for (i = 0; i < suite.children.length; i += 1) {
                 if (suite.children[i] instanceof Tellurium.Description) {
                     this.description(suite.children[i]);
@@ -840,12 +889,17 @@ Class(Tellurium.Reporter, 'Console')({
                     this.specification(suite.children[i]);
                 }
             }
+            this._currentIndent--;
         },
 
         description : function (description) {
-            var i;
-            console.log('    ' + description.description);
+            var i, indentString;
 
+            indentString = Array(this._currentIndent + 1).join("  ")
+
+            console.log(indentString + description.description);
+
+            this._currentIndent++;
             for (i = 0; i < description.children.length; i += 1) {
                 if (description.children[i] instanceof Tellurium.Description) {
                     this.description(description.children[i]);
@@ -853,48 +907,114 @@ Class(Tellurium.Reporter, 'Console')({
                     this.specification(description.children[i]);
                 }
             }
+            this._currentIndent--;
 
         },
 
         specification : function (specification) {
-            var i;
+            var i, statusString, indentString;
 
             this.totalSpecs = this.totalSpecs + 1;
 
+            indentString = Array(this._currentIndent + 1).join("  ")
+
+            this._currentIndent++;
             if (specification.status === specification.STATUS_FAIL) {
                 this.failedSpecs = this.failedSpecs + 1;
-                console.log("FAIL " + specification.description);
+                statusString = "FAIL " + specification.description;
+
+                if (this.constructor.colorsEnabled) {
+                    statusString = statusString.red;
+                }
+
+                console.log(indentString + statusString);
             } else if (specification.status === specification.STATUS_SUCCESS) {
                 this.passedSpecs = this.passedSpecs + 1;
-                console.log("PASS " + specification.description);
+                statusString = "PASS " + specification.description;
+
+                if (this.constructor.colorsEnabled) {
+                    statusString = statusString.green;
+                }
+
+                console.log(indentString + statusString);
             } else if (specification.status === specification.STATUS_PENDING) {
                 this.pendingSpecs = this.pendingSpecs + 1;
-                console.log("PENDING " + specification.description);
+                statusString = "PENDING " + specification.description;
+
+                if (this.constructor.colorsEnabled) {
+                    statusString = statusString.yellow;
+                }
+
+                console.log(indentString + statusString);
             }
 
-            console.log("Assertions:");
-            for (i = 0; i < specification.assertions.length; i += 1) {
-                this.assertion(specification.assertions[i]);
+            if (specification.assertions.length > 0) {
+                for (i = 0; i < specification.assertions.length; i += 1) {
+                    this.assertion(specification.assertions[i]);
+                }
             }
-
+            this._currentIndent--;
         },
 
         assertion : function (assertion) {
-            var not;
+            var not, indentString, assertionActionString, labelText;
+
+            indentString = Array(this._currentIndent + 1).join("  ")
+            labelText = "'" + (assertion.label || 'assertion') + "'";
+
             if (assertion.type === Tellurium.Assertion.prototype.TYPE_FALSE) {
                 not = ' not ';
             } else {
                 not = ' ';
             }
 
-            if (assertion.status === assertion.STATUS_SUCCESS) {
-                console.log("  " + assertion.label + " " + assertion.actual);
-                console.log("  " + assertion.label + " " + assertion.actual +
-                    not + assertion.invoked + ' ' + (assertion.expected) ? assertion.expected : '');
-            } else if (assertion.status === assertion.STATUS_FAIL) {
-                console.log("  " + assertion.label + " " + assertion.actual +
-                    not + assertion.invoked + ' ' + (assertion.expected) ? assertion.expected : '');
+            assertionExpected = this._stringifyAssertionValue(assertion, assertion.expected[0]);
+            assertionActual = this._stringifyAssertionValue(assertion, assertion.actual);
+
+            // Override values for blacklisted functions
+            if (this.constructor.EXPECTED_BLACKLIST.indexOf(assertion.invoked) > -1) {
+              assertionExpected = "";
+            } else {
+              assertionExpected += " ";
             }
+
+            if (this.constructor.ACTUAL_BLACKLIST.indexOf(assertion.invoked) > -1) {
+              assertionActual = "dissappointed";
+            }
+
+            assertionActionString = assertion.invoked.replace(/([A-Z])/g, ' $1').toLowerCase();
+
+            // For legibility, bolden the label. Makes everything easier to 
+            // follow
+            if (this.constructor.colorsEnabled) {
+                labelText = labelText.bold;
+            }
+
+            if (assertion.status === assertion.STATUS_FAIL) {
+                console.log(indentString + "Expected " + labelText + not + assertionActionString + " " + assertionExpected + "but got " + assertionActual + " instead ");
+            }
+        },
+
+        _stringifyAssertionValue : function stringifyAssertionValue(assertion, value) {
+            var key;
+
+            // add brackets to array
+            if (typeof value === 'object' && 
+                    value !== null &&
+                    value.hasOwnProperty('called')) {
+                key = assertion.__key;
+                value = value.called[0];
+                value = value[key];
+            }
+
+            // add brackets to array
+            if (typeof value === 'object' && 
+                    value !== null &&
+                    value.constructor === Array) {
+                value = '[' + value + ']';
+            }
+
+            return value;
         }
     }
 });
