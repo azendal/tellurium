@@ -23,17 +23,22 @@ Yes and the number keeps growing. but it really works, if not pls send me an iss
 
 ## Ok how can I use it?
 
-	var someObj = {
-	  good : true;
-	};
+require('neon');
+require('neon/stdlib');
+require('tellurium');
 
-	Tellurium.suite('my first test')({
-	  this.specify('someObj must be good')({
-	    this.assert(someObj.good).toBe(true);
-	  });
-	});
+var someObj = {
+  good : true
+};
 
-	Tellurium.run();
+Tellurium.suite('my first test')(function() {
+  this.specify('someObj must be good')(function() {
+    this.assert(someObj.good).toBe(true);
+    this.completed();
+  });
+});
+
+Tellurium.run();
 
 ## Theory of Operation
 
