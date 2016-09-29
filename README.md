@@ -23,6 +23,8 @@ Yes and the number keeps growing. but it really works, if not pls send me an iss
 
 ## Ok how can I use it?
 
+```javascript 
+
 require('neon');
 require('neon/stdlib');
 require('tellurium');
@@ -39,6 +41,8 @@ Tellurium.suite('my first test')(function() {
 });
 
 Tellurium.run();
+
+```
 
 ## Theory of Operation
 
